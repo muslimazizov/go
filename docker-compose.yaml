@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  postgresql:
+    image: postgres:15.6
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:22.10
+    volumes:
+        - clickhouse_data:/var/lib/clickhouse/
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+  nats:
+    image: nats:2.9
+    hostname: ${PROJECT_NAME}-nats
+    command: ["-js", "-DV"]
+    ports:
+      - "${NATS_PORT}:4222"
+      - "6222:6222"
+      - "8222:8222"
+
+  redis:
+    image: bitnami/redis:6.2
+    environment:
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD}
+    ports:
+      - "6379:6379"
+  
+
+volumes:
+  postgres_data:
+  clickhouse_data:
