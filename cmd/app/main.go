@@ -14,6 +14,7 @@ import (
 	"gogogo/pkg/store/postgres"
 
 	"github.com/go-chi/chi/v5"
+	redix "github.com/gomodule/redigo/redis"
 )
 
 func main() {
@@ -33,12 +34,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("cant ping redis: %v", err)
 	}
+	defer func(redisConn redix.Conn) {
+		err := redisConn.Close()
+		if err != nil {
+			log.Printf("cant close redis conn: %v", err)
+		}
+	}(redisConn)
 
 	// nats
 	n, err := nats.New(cfg)
 	if err != nil {
 		log.Fatalf("cant create conn to nats: %v", err)
 	}
+	defer n.Conn.Close()
 
 	goodStore := good.NewStore(store.Pool, n.Conn)
 	goodService := good.NewService(goodStore, redisConn)
